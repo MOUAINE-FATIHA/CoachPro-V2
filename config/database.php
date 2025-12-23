@@ -1,16 +1,14 @@
 <?php
-
 $user= 'root';
 $pass='';
 
 try{
-    $db= new PDO('mysql:host=localhost; dbname=coachconnect', $user , $pass);
-    echo 'connexion réussite' . "<br/>";
-    foreach($db -> query('SELECT * FROM users') as $row){
-        print_r($row);
-    }
-}catch(PDOException $e)
-{
-    print "Erreur :" . $e->getMessage() . "<br/>";
-    die;
+    $db= new PDO('mysql:host=localhost; dbname=coachconnect;charset= utf8mb4', $user , $pass,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]
+);
+}catch(PDOException $e){
+    die ("Erreur :" . $e->getMessage());
 }
