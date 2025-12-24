@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] ==='POST'){
             $annees_exp = (int)($_POST['annees_exp'] ?? 0);
             $description = trim($_POST['description'] ?? '');
             $user = new Coach($email,$password, $discipline,$annees_exp, $description);
-
             //insert à la bd 
             $stmt = $pdo->prepare("INSERT INTO users (nom, prenom, email, password,role) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute(['Nom','Prenom',$email, $password, 'coach']);
@@ -31,20 +30,17 @@ if ($_SERVER['REQUEST_METHOD'] ==='POST'){
             //insert into coachs
             $stmt2 = $pdo->prepare("INSERT INTO coaches (id_user, discipline,annees_exp, description) VALUES (?, ?, ?, ?)");
             $stmt2->execute([$userId,$discipline, $annees_exp,$description]);
-
         } elseif ($role === 'sportif') {
             $user = new Sportif($email, $password);
 
-            //insert à la bd
             $stmt = $pdo->prepare("INSERT INTO users (nom, prenom,email, password,role) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute(['Nom', 'Prenom',$email, $password,'sportif']);
             $userId = $pdo->lastInsertId();
 
-            //insert into sportifs
             $stmt2 = $pdo->prepare("INSERT INTO sportifs (id_user) VALUES (?)");
             $stmt2->execute([$userId]);
         }
-        $success = "Utilisateur inscrit avec succès !";
+        $success = "Utilisateur est inscrit avec succès";
     }
 }
 ?>
@@ -115,43 +111,37 @@ if ($_SERVER['REQUEST_METHOD'] ==='POST'){
             color: #d2a812;
             text-decoration: none;
         }
-
-        /* select styling */
-select {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 6px;
-    border: 1px solid #aaa;
-    background-color: white;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-/* textarea styling */
-textarea {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 6px;
-    border: 1px solid #aaa;
-    font-family: Arial, sans-serif;
-    resize: vertical;
-    min-height: 80px;
-}
-
-/* focus effect (input, select, textarea) */
-input:focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: #1b3f65ff;
-    box-shadow: 0 0 5px rgba(27, 63, 101, 0.5);
-}
-#coachFields {
-    margin-top: 10px;
-    text-align: left;
-}
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #aaa;
+            background-color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #aaa;
+            font-family: Arial, sans-serif;
+            resize: vertical;
+            min-height: 80px;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #1b3f65ff;
+            box-shadow: 0 0 5px rgba(27, 63, 101, 0.5);
+        }
+        #coachFields {
+            margin-top: 10px;
+            text-align: left;
+        }
 
     </style>
 </head>
