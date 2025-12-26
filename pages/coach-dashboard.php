@@ -8,7 +8,6 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'coach') {
     header('Location: login.php');
     exit;
 }
-
 $coachId = $_SESSION['user']['id'];
 $success = '';
 $error = '';
@@ -41,8 +40,8 @@ $reservations = Reservation::reservationsCoach($pdo, $coachId);
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Dashboard Coach</title>
+    <meta charset="UTF-8">
+    <title>Dashboard Coach</title>
 <style>
     body { 
         font-family: Arial, sans-serif; 
@@ -119,65 +118,61 @@ $reservations = Reservation::reservationsCoach($pdo, $coachId);
     }
 </style>
 </head>
+
 <body>
+    <div class="container">
+        <div style="text-align:right; margin-bottom:10px;">
+            <a href="logout.php" style="background:#d2a812; color:white; padding:6px 12px; border-radius:4px; text-decoration:none;">
+            Déconnexion</a>
+        </div>
 
-<div class="container">
-    <div style="text-align:right; margin-bottom:10px;">
-        <a href="logout.php" style="background:#d2a812; color:white; padding:6px 12px; border-radius:4px; text-decoration:none;">
-        Déconnexion</a>
+        <h2>Dashboard Coach</h2>
+        <?php if($success): ?><p class="success"><?= $success ?></p><?php endif; ?>
+        <?php if($error): ?><p class="error"><?= $error ?></p><?php endif; ?>
+
+        <h3>Ajouter une séance</h3>
+        <form method="POST">
+            <input type="date" name="date" required>
+            <input type="time" name="heure" required>
+            <input type="number" name="duree" placeholder="Durée (min)" required>
+            <button name="ajouter">Ajouter</button>
+        </form>
+        <h3>Mes séances</h3>
+        <table>
+        <tr>
+            <th>Date</th>
+            <th>Heure</th>
+            <th>Durée</th>
+            <th>Statut</th>
+            <th>Action</th>
+        </tr>
+        <?php foreach($seances as $s): ?>
+            <tr>
+                <td><?= $s['date'] ?></td>
+                <td><?= $s['heure'] ?></td>
+                <td><?= $s['duree'] ?></td>
+                <td><?= $s['statut'] ?></td>
+                <td><a href="?supprimer=<?= $s['id'] ?>" style="background:#d2a812; color:white; padding:6px 12px; border-radius:4px; text-decoration:none;">Supprimer</a></td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
+        <h3>Séances réservées</h3>
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Heure</th>
+                <th>Durée</th>
+                <th>Sportif</th>
+            </tr>
+            <?php foreach($reservations as $r): ?>
+            <tr>
+                <td><?= $r['date'] ?></td>
+                <td><?= $r['heure'] ?></td>
+                <td><?= $r['duree'] ?></td>
+                <td><?= $r['nom'].' '.$r['prenom'] ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
     </div>
-
-<h2>Dashboard Coach</h2>
-
-<?php if($success): ?><p class="success"><?= $success ?></p><?php endif; ?>
-<?php if($error): ?><p class="error"><?= $error ?></p><?php endif; ?>
-
-<h3>Ajouter une séance</h3>
-<form method="POST">
-    <input type="date" name="date" required>
-    <input type="time" name="heure" required>
-    <input type="number" name="duree" placeholder="Durée (min)" required>
-    <button name="ajouter">Ajouter</button>
-</form>
-
-<h3>Mes séances</h3>
-<table>
-<tr>
-    <th>Date</th>
-    <th>Heure</th>
-    <th>Durée</th>
-    <th>Statut</th>
-    <th>Action</th>
-</tr>
-<?php foreach($seances as $s): ?>
-<tr>
-<td><?= $s['date'] ?></td>
-<td><?= $s['heure'] ?></td>
-<td><?= $s['duree'] ?></td>
-<td><?= $s['statut'] ?></td>
-<td><a href="?supprimer=<?= $s['id'] ?>" style="background:#d2a812; color:white; padding:6px 12px; border-radius:4px; text-decoration:none;">Supprimer</a></td>
-</tr>
-<?php endforeach; ?>
-</table>
-
-<h3>Séances réservées</h3>
-<table>
-<tr>
-    <th>Date</th>
-    <th>Heure</th>
-    <th>Durée</th>
-    <th>Sportif</th>
-</tr>
-<?php foreach($reservations as $r): ?>
-<tr>
-<td><?= $r['date'] ?></td>
-<td><?= $r['heure'] ?></td>
-<td><?= $r['duree'] ?></td>
-<td><?= $r['nom'].' '.$r['prenom'] ?></td>
-</tr>
-<?php endforeach; ?>
-</table>
-
-</div>
 </body>
 </html>
