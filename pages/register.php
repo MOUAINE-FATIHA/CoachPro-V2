@@ -1,186 +1,181 @@
 <?php
+session_start();
 require_once '../config/database.php';
 require_once '../classes/Coach.php';
 require_once '../classes/Sportif.php';
+
 $errors = [];
 $success = '';
 
-if ($_SERVER['REQUEST_METHOD'] ==='POST'){
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role = $_POST['role'] ?? '';
+    $nom = trim($_POST['nom'] ?? '');
+    $prenom = trim($_POST['prenom'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
-    if (empty($email) || empty($password) || empty($role)) {
-        $errors[] = "les champs sont obligatoires.";
+    if (empty($nom) || empty($prenom) || empty($email) || empty($password) || empty($role)) {
+        $errors[] = "Tous les champs sont obligatoires.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "l'email est incorrect.";
+        $errors[] = "L'email est invalide.";
+    } else {
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email=?");
+        $stmt->execute([$email]);
+        if ($stmt->fetch()) {
+            $errors[] = "Cet email est déjà utilisé.";
+        }
     }
 
     if (empty($errors)) {
-        if ($role ==='coach') {
+        if ($role === 'coach') {
             $discipline = trim($_POST['discipline'] ?? '');
             $annees_exp = (int)($_POST['annees_exp'] ?? 0);
             $description = trim($_POST['description'] ?? '');
-            $user = new Coach($email,$password, $discipline,$annees_exp, $description);
-            //insert à la bd 
-            $stmt = $pdo->prepare("INSERT INTO users (nom, prenom, email, password,role) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute(['Nom','Prenom',$email, $password, 'coach']);
-            $userId = $pdo->lastInsertId();
 
-            //insert into coachs
-            $stmt2 = $pdo->prepare("INSERT INTO coaches (id_user, discipline,annees_exp, description) VALUES (?, ?, ?, ?)");
-            $stmt2->execute([$userId,$discipline, $annees_exp,$description]);
+            // Créer un objet Coach
+            $user = new Coach($nom, $prenom, $email, $password, $discipline, $annees_exp, $description);
+            $stmt = $pdo->prepare("INSERT INTO users (nom, prenom, email, password, role) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$nom, $prenom, $email, $password, 'coach']);
+            $userId = $pdo->lastInsertId();
+            $stmt2 = $pdo->prepare("INSERT INTO coaches (id_user, discipline, annees_exp, description) VALUES (?, ?, ?, ?)");
+            $stmt2->execute([$userId, $discipline, $annees_exp, $description]);
+
         } elseif ($role === 'sportif') {
-            $user = new Sportif($email, $password);
-
-            $stmt = $pdo->prepare("INSERT INTO users (nom, prenom,email, password,role) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute(['Nom', 'Prenom',$email, $password,'sportif']);
+            $user = new Sportif($nom, $prenom, $email, $password);
+            $stmt = $pdo->prepare("INSERT INTO users (nom, prenom, email, password, role) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$nom, $prenom, $email, $password, 'sportif']);
             $userId = $pdo->lastInsertId();
-
             $stmt2 = $pdo->prepare("INSERT INTO sportifs (id_user) VALUES (?)");
             $stmt2->execute([$userId]);
         }
-        $success = "Utilisateur est inscrit avec succès";
+
+        $success = "Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.";
     }
 }
 ?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #1b3f65ff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+        * { 
+            margin:0; 
+            padding:0; 
+            box-sizing:border-box; 
+            font-family:Arial,sans-serif; 
         }
-
-        .container {
-            background: white;
-            padding: 35px;
-            width: 350px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
-            text-align: center;
+        body { 
+            background:#1b3f65ff; 
+            display:flex; 
+            justify-content:center; 
+            align-items:center; 
+            height:100vh; 
         }
-
-        h2 {
-            margin-bottom: 20px;
-            color: #1b3f65ff;
+        .container { 
+            background:white; 
+            padding:35px; 
+            width:360px; 
+            border-radius:8px; 
+            box-shadow:0 0 15px rgba(0,0,0,0.15); 
+            text-align:center; 
         }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 6px;
-            border: 1px solid #aaa;
+        h2 { 
+            margin-bottom:20px; 
+            color:#1b3f65ff; 
         }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 12px;
-            border: none;
-            background: #1b3f65ff;
-            color: white;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
+        input, select, textarea { 
+            width:100%; 
+            padding:12px; 
+            margin:8px 0; 
+            border-radius:6px; 
+            border:1px solid #aaa; 
         }
-
-        button:hover {
-            background: #032d5aff;
+        button { 
+            width:100%; 
+            padding:12px; 
+            margin-top:12px; 
+            border:none; 
+            background:#1b3f65ff; 
+            color:white; 
+            font-size:16px; 
+            border-radius:6px; 
+            cursor:pointer; 
         }
-
-        .error { color: red; font-size: 14px; }
-        .success { color: green; font-size: 14px; }
-
-        .link {
-            margin-top: 12px;
-            font-size: 14px;
+        button:hover { 
+            background:#032d5aff; 
         }
-
-        a {
-            color: #d2a812;
-            text-decoration: none;
+        .error { 
+            color:red; 
+            font-size:14px; 
+            margin-bottom:10px; 
         }
-        select {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 6px;
-            border: 1px solid #aaa;
-            background-color: white;
-            font-size: 14px;
-            cursor: pointer;
+        .success { 
+            color:green; 
+            font-size:14px; 
+            margin-bottom:10px; 
         }
-        textarea {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 6px;
-            border: 1px solid #aaa;
-            font-family: Arial, sans-serif;
-            resize: vertical;
-            min-height: 80px;
+        .link { 
+            margin-top:12px; 
+            font-size:14px; 
         }
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #1b3f65ff;
-            box-shadow: 0 0 5px rgba(27, 63, 101, 0.5);
+        a { 
+            text-decoration:none; 
+            color:#d2a812; 
         }
-        #coachFields {
-            margin-top: 10px;
-            text-align: left;
+        #coachFields { 
+            text-align:left; 
+            display:none; 
+            margin-top:10px; 
         }
-
     </style>
 </head>
 <body>
+<div class="container">
+    <h2>Créer un compte</h2>
+
     <?php if ($errors): ?>
-        <ul style="color:red;"><?php foreach ($errors as $err): ?>
-            <li><?= $err ?></li><?php endforeach; ?>
+        <ul class="error">
+            <?php foreach($errors as $err): ?>
+                <li><?= htmlspecialchars($err) ?></li>
+            <?php endforeach; ?>
         </ul>
     <?php endif; ?>
     <?php if ($success): ?>
-        <p style="color:green;"><?= $success ?></p>
+        <p class="success"><?= $success ?></p>
     <?php endif; ?>
-<div class="container">
-    <h2>Créer un compte</h2>
-    <form method="POST" action=''>
-        <input type="email" name="email" placeholder="Adresse mail" required>
+
+    <form method="POST" action="">
+        <input type="text" name="nom" placeholder="Nom" required>
+        <input type="text" name="prenom" placeholder="Prénom" required>
+        <input type="email" name="email" placeholder="Email" required>
         <input type="password" name="password" placeholder="Mot de passe" required>
         <select name="role" required>
-            <option value="">Choisir ton role</option>
+            <option value="">Choisir votre rôle</option>
             <option value="coach">Coach</option>
             <option value="sportif">Sportif</option>
         </select>
-        <div id="coachFields" style="display:none;">
-            <input type="text" name="discipline" placeholder='Discipline' required>
-            <input type="number" name="annees_exp" placeholder="Annees d'éxperiences" required>
-            <textarea name="description" placeholder="Description :"></textarea>
+
+        <div id="coachFields">
+            <input type="text" name="discipline" placeholder="Discipline">
+            <input type="number" name="annees_exp" placeholder="Années d'expérience">
+            <textarea name="description" placeholder="Description"></textarea>
         </div>
-        <button type="submit" name="submit">S'inscrire</button>
+
+        <button type="submit">S'inscrire</button>
     </form>
-    <p class="link">Vous avez déjà un compte ?  
-        <a href="login.php">Connexion</a>
-    </p>
+
+    <p class="link">Vous avez déjà un compte ? <a href="login.php">Connexion</a></p>
 </div>
-    <script>
-        const roleSelect = document.querySelector('select[name="role"]');
-        const coachFields =document.getElementById('coachFields');
-        roleSelect.addEventListener('change',()=> {
-            coachFields.style.display= roleSelect.value==='coach'?'block':'none';
-        });
-    </script>
+
+<script>
+    const roleSelect = document.querySelector('select[name="role"]');
+    const coachFields = document.getElementById('coachFields');
+
+    roleSelect.addEventListener('change', () => {
+        coachFields.style.display = roleSelect.value === 'coach' ? 'block' : 'none';
+    });
+</script>
 </body>
 </html>

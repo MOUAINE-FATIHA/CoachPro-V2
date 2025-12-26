@@ -1,7 +1,20 @@
 <?php
-require_once '../classes/Utilisateur.php';
-// instanciation
-$user = new Utilisateur('a@gmail.com' , 'aaa');
-$user2 = new Utilisateur('BB@gmail.com' , 'BBB');
-var_dump($user,$user2);
-?>
+session_start();
+if (!isset($_SESSION['user'])) {
+    header('Location: ../pages/login.php');
+    exit;
+}
+$role = $_SESSION['user']['role'];
+
+switch ($role) {
+    case 'coach':
+        header('Location: ../pages/coach-dashboard.php');
+        exit;
+    case 'sportif':
+        header('Location: ../pages/sportif-dashboard.php');
+        exit;
+    default:
+        session_destroy();
+        header('Location: ../pages/login.php');
+        exit;
+}
